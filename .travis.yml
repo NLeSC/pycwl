@@ -1,0 +1,13 @@
+language: python
+python:
+  - "3.5"
+  - "3.6"
+install:
+  - pip install .
+  - pip install -r requirements.txt
+before_script:
+script:
+  - py.test --cov=pycwl --cov-report term --cov-report xml:cov.xml tests/
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
