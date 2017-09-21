@@ -215,15 +215,55 @@ class Workflow(Process):
     def get_dot(self):
         dot = Digraph() # comment='The Round Table')
         for s in self.steps:
-            if isinstance(s, CommandLineTool):
-                dot.node(s, s)
-                print s.baseCommand
-        dot.edge('add', 'multiply')
-        #dot.render('test_graph.gv', view=True)
+            dot.node(s, s, shape="box")
+
+            for step_output in self.steps[s].outputs:
+                dot.node(step_output,step_output)
+                dot.edge(s, step_output)
+
+            for outputn in self.steps[s].input_map:
+                inputn = self.steps[s].input_map[outputn]
+
+                if not outputn in self.inputs:
+                    dot.node(inputn, inputn)
+
+                    if "/" in outputn:
+
+                        p, o = outputn.split("/")
+                        #dot.node(o, o)
+                        dot.edge(o, inputn)
+                    else:
+                        dot.edge(outputn, inputn)
+
+                dot.edge(inputn, s)
+
+
+                #print outputn, inputn
+        for flow_input in self.inputs:
+            dot.node(flow_input, flow_input)
+            for s in self.steps:
+                if flow_input in self.steps[s].input_map:
+                    dot.edge(flow_input, self.steps[s].input_map[flow_input], color="blue")
+
+        for flow_output in self.outputs:
+            dot.node(flow_output, flow_output)
+            if "/" in flow_output:
+                p, o = flow_output.split("/")
+                dot.edge(o, flow_output, color="blue")
+
         return dot
 
 
 class Step(object):
+
+    # def  __init__(self, process=None, input_map=None, outputs=None):
+    #     self.process == process
+    #     if input_map is None:
+    #         self.input_map = {}
+    #     else:
+    #         self.input_map = input_map
+            
+    #     self.outputs= set() 
 
     def __init__(self, **args):
 
