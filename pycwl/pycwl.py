@@ -187,8 +187,10 @@ class CommandLineTool(Process):
 
 
 # ------------------------------------------------------------------------------------
-class Workflow(Process):
+from graphviz import Digraph
 
+class Workflow(Process):
+    
     def __init__(self, **args):
 
         super(Workflow, self).__init__(**args)
@@ -209,6 +211,16 @@ class Workflow(Process):
     @steps.setter
     def steps(self, value):
         self._steps = value
+
+    def get_dot(self):
+        dot = Digraph() # comment='The Round Table')
+        for s in self.steps:
+            if isinstance(s, CommandLineTool):
+                dot.node(s, s)
+                print s.baseCommand
+        dot.edge('add', 'multiply')
+        #dot.render('test_graph.gv', view=True)
+        return dot
 
 
 class Step(object):
