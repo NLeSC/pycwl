@@ -1,29 +1,13 @@
+#TODO: add docstrings
+from graphviz import Digraph
 
 
 class IO(object):
-    def __init__(self, **args):
-        self.key_datatype = "datatype"
-        self.key_def_value = "default_value"
-        self.key_output_type = "output_type"
+    def __init__(self, datatype='string', default_value='', output_type=''):
 
-        self.default_datatype = "string"
-        self.default_def_value = ""  # Nice!!
-        self.default_output_type = ""
-
-        if self.key_datatype in args:
-            self.datatype = args[self.key_datatype]
-        else:
-            self.datatype = self.default_datatype
-
-        if self.key_def_value in args:
-            self.def_value = args[self.key_def_value]
-        else:
-            self.def_value = self.default_def_value
-
-        if self.key_output_type in args:
-            self.output_type = args[self.key_output_type]
-        else:
-            self.output_type = self.default_output_type
+        self.datatype = datatype
+        self.def_value = default_value
+        self.output_type = output_type
 
     @property
     def datatype(self):
@@ -50,33 +34,20 @@ class IO(object):
         self._output_type = value
 
 
-# ------------------------------------------------------------------------------------
 class Process(object):
+    def __init__(self, cwlVersion='', inputs=None, outputs=None):
 
-    def __init__(self, **args):
-        # self.name = None
-        self.key_cwlVersion = "cwlVersion"
-        self.key_inputs = "inputs"
-        self.key_outputs = "outputs"
+        self.cwlVersion = cwlVersion
 
-        self.default_cwlVersion = ""
-        self.default_inputs = {}
-        self.default_outputs = {}
-
-        if self.key_cwlVersion in args:
-            self.cwlVersion = args[self.key_cwlVersion]
+        if inputs is None:
+            self.inputs = {}
         else:
-            self.cwlVersion = self.default_cwlVersion
+            self.inputs = inputs
 
-        if self.key_inputs in args:
-            self.inputs = args[self.key_inputs]
+        if outputs is None:
+            self.outputs = {}
         else:
-            self.inputs = self.default_inputs
-
-        if self.key_outputs in args:
-            self.outputs = args[self.key_outputs]
-        else:
-            self.outputs = self.default_outputs
+            self.outputs = outputs
 
     @property
     def inputs(self):
@@ -103,47 +74,34 @@ class Process(object):
         self._cwlVersion = value
 
 
-# ------------------------------------------------------------------------------------
 class CommandLineTool(Process):
+    def __init__(
+            self,
+            cwlVersion='',
+            inputs=None,
+            outputs=None,
+            baseCommand=None,
+            stdout='',
+            successCodes='',
+            permanentFailCodes='',
+            arguments='',
+        ):
 
-    def __init__(self, **args):
-        super(CommandLineTool, self).__init__(**args)
-        self.key_baseCommand = "baseCommand"
-        self.key_stdout = "stdout"
-        self.key_successCodes = "successCodes"
-        self.key_permanentFailCodes = "permanentFailCodes"
-        self.key_arguments = "arguments"
+        super(CommandLineTool, self).__init__(
+            cwlVersion=cwlVersion,
+            inputs=inputs,
+            outputs=outputs,
+        )
 
-        self.default_baseCommand = []
-        self.default_stdout = ""
-        self.default_successCodes = ""
-        self.default_permanentFailCodes = ""
-        self.default_arguments = ""
-
-        if self.key_baseCommand in args:
-            self.baseCommand = args[self.key_baseCommand]
+        if baseCommand is None:
+            self.baseCommand = []
         else:
-            self.baseCommand = self.default_baseCommand
+            self.baseCommand = baseCommand
 
-        if self.key_stdout in args:
-            self.stdout = args[self.key_stdout]
-        else:
-            self.stdout = self.default_stdout
-
-        if self.key_successCodes in args:
-            self.successCodes = args[self.key_successCodes]
-        else:
-            self.successCodes = self.default_successCodes
-
-        if self.key_permanentFailCodes in args:
-            self.permanentFailCodes = args[self.key_permanentFailCodes]
-        else:
-            self.permanentFailCodes = self.default_permanentFailCodes
-
-        if self.key_arguments in args:
-            self.arguments = args[self.key_arguments]
-        else:
-            self.arguments = self.default_arguments
+        self.stdout = stdout
+        self.successCodes = successCodes
+        self.permanentFailCodes = permanentFailCodes
+        self.arguments = arguments
 
     @property
     def baseCommand(self):
@@ -186,23 +144,25 @@ class CommandLineTool(Process):
         self._arguments = value
 
 
-# ------------------------------------------------------------------------------------
-from graphviz import Digraph
-
 class Workflow(Process):
-    
-    def __init__(self, **args):
+    def __init__(
+            self,
+            cwlVersion='',
+            inputs=None,
+            outputs=None,
+            steps=None,
+        ):
 
-        super(Workflow, self).__init__(**args)
+        super(Workflow, self).__init__(
+            cwlVersion=cwlVersion,
+            inputs=inputs,
+            outputs=outputs,
+        )
 
-        self.key_steps = "steps"
-
-        self.default_steps = {}
-
-        if self.key_steps in args:
-            self.steps = args[self.key_steps]
+        if steps is None:
+            self.steps = {}
         else:
-            self.steps = self.default_steps
+            self.steps = steps
 
     @property
     def steps(self):
@@ -237,7 +197,6 @@ class Workflow(Process):
 
                 dot.edge(inputn, s)
 
-
                 #print outputn, inputn
         for flow_input in self.inputs:
             dot.node(flow_input, flow_input)
@@ -255,40 +214,19 @@ class Workflow(Process):
 
 
 class Step(object):
+    def __init__(self, process=None, input_map=None, outputs=None):
 
-    # def  __init__(self, process=None, input_map=None, outputs=None):
-    #     self.process == process
-    #     if input_map is None:
-    #         self.input_map = {}
-    #     else:
-    #         self.input_map = input_map
-            
-    #     self.outputs= set() 
+        self.process = process
 
-    def __init__(self, **args):
-
-        self.key_process = "process"
-        self.key_input_map = "input_map"
-        self.key_outputs = "outputs"
-
-        self.default_process = None
-        self.default_input_map = {}
-        self.default_outputs = {}
-
-        if self.key_process in args:
-            self.process = args[self.key_process]
+        if input_map is None:
+            self.input_map = {}
         else:
-            self.process = self.default_process
+            self.input_map = input_map
 
-        if self.key_input_map in args:
-            self.input_map = args[self.key_input_map]
+        if outputs is None:
+            self.outputs = set()
         else:
-            self.input_map = self.default_input_map
-
-        if self.key_outputs in args:
-            self.outputs = args[self.key_outputs]
-        else:
-            self.outputs = self.default_outputs
+            self.outputs = outputs
 
     @property
     def process(self):
