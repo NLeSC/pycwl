@@ -212,46 +212,69 @@ class Workflow(Process):
     def steps(self, value):
         self._steps = value
 
+
+
     def get_dot(self):
-        dot = Digraph() # comment='The Round Table')
-        for s in self.steps:
-            dot.node(s, s, shape="box")
+        # Note for working with subgraphs:
+        # For things to render as subgraphs you need to give the main graph a filename (filename="cluster.gv").
+        # And the subgraphs need to have a name that starts with the filename (cluster_) and then have incremental 
+        # values
+        flow_g = Digraph(filename="cluster.gv")
+        flow_g.graph_attr.update(size='10', rankdir="TB", rank='max')
 
-            for step_output in self.steps[s].outputs:
-                dot.node(step_output,step_output)
-                dot.edge(s, step_output)
-
-            for outputn in self.steps[s].input_map:
-                inputn = self.steps[s].input_map[outputn]
-
-                if not outputn in self.inputs:
-                    dot.node(inputn, inputn)
-
-                    if "/" in outputn:
-
-                        p, o = outputn.split("/")
-                        #dot.node(o, o)
-                        dot.edge(o, inputn)
-                    else:
-                        dot.edge(outputn, inputn)
-
-                dot.edge(inputn, s)
-
-
-                #print outputn, inputn
-        for flow_input in self.inputs:
-            dot.node(flow_input, flow_input)
+        print "Step nodes: "
+        with flow_g.subgraph(name="cluster_1") as dot:
+            dot.graph_attr.update(color="white")
             for s in self.steps:
-                if flow_input in self.steps[s].input_map:
-                    dot.edge(flow_input, self.steps[s].input_map[flow_input], color="blue")
+                dot.node(s, s, shape="box", color="blue")
+                print s
 
-        for flow_output in self.outputs:
-            dot.node(flow_output, flow_output)
-            if "/" in flow_output:
-                p, o = flow_output.split("/")
-                dot.edge(o, flow_output, color="blue")
+                for step_output in self.steps[s].outputs:
+                    print step_output
+                    dot.node(step_output,step_output)
+                    dot.edge(s, step_output)
 
-        return dot
+                for outputn in self.steps[s].input_map:
+                    inputn = self.steps[s].input_map[outputn]
+
+                    if not outputn in self.inputs:
+                        dot.node(inputn, inputn)
+                        print inputn
+
+                        if "/" in outputn:
+
+                            p, o = outputn.split("/")
+                            #dot.node(o, o)
+                            dot.edge(o, inputn)
+                        else:
+                            dot.edge(outputn, inputn)
+                    #print (inputn, s)
+                    dot.edge(inputn, s)
+
+        
+        print ("flow_inputs:")
+        with flow_g.subgraph(name="cluster_0") as flow_top:
+            for flow_input in self.inputs:
+                print flow_input   
+                flow_top.node(flow_input, flow_input, color="red")#, rank='max')#, rank=1)
+                for s in self.steps:
+                    if flow_input in self.steps[s].input_map:
+                        flow_top.edge(flow_input, self.steps[s].input_map[flow_input], color="blue")
+
+
+
+        print "flow outputs: "
+        with flow_g.subgraph(name="cluster_2") as bot_g:
+            bot_g.graph_attr.update(rank='3')
+            for flow_output in self.outputs:
+                bot_g.node(flow_output, flow_output, color="red")
+                print flow_output
+                if "/" in flow_output:
+                    p, o = flow_output.split("/")
+                    flow_g.edge(o, flow_output, color="blue")
+
+        #flow_g.subgraph(dot)
+        return flow_g
 
 
 class Step(object):
@@ -262,7 +285,7 @@ class Step(object):
     #         self.input_map = {}
     #     else:
     #         self.input_map = input_map
-            
+
     #     self.outputs= set() 
 
     def __init__(self, **args):
