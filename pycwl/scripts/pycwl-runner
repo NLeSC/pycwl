@@ -4,7 +4,7 @@ import argparse
 import os
 import logging
 import sys
-from pycwl.runner import runner
+from pycwl.runner import Runner
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +16,7 @@ def is_dir(dirname):
     else:
         msg = "{0} is not a directory".format(dirname)
         raise argparse.ArgumentTypeError(msg)
+
 
 if __name__ == "__main__":
     # define arguments
@@ -36,13 +37,16 @@ if __name__ == "__main__":
                         default=False,
                         help=('Save workflow visualization in graphviz ' +
                               'format as png'))
-    parser.add_argument('workflow', metavar='workflow', help='workflow')
+    parser.add_argument('workflow', metavar='workflow',
+                        type=argparse.FileType('r'), help='workflow')
     parser.add_argument('job_object', metavar='job_object', nargs='?',
-                        help='job_object', default=False)
+                        type=argparse.FileType('r'), help='job_object',
+                        default=False)
     args = parser.parse_args()
     # set basic logging config
     if (args.quiet and args.debug):
-        print('Conflicting arguments --quiet and --debug', file=sys.stderr)
+        logging.error('Conflicting arguments --quiet and --debug',
+                      file=sys.stderr)
         sys.exit(1)
     elif args.quiet:
         loglevel = logging.WARNING
@@ -54,4 +58,4 @@ if __name__ == "__main__":
                         format='%(asctime)s - %(levelname)s - %(message)s',
                         datefmt='%Y/%m/%d/%H:%M:%S')
     logging.info('Basic arguments: ' + str(vars(args)))
-    runner(args)
+    Runner(args)
