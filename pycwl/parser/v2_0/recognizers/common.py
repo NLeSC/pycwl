@@ -38,17 +38,21 @@ def set_by_key(node, key, value_node):
 
     Args:
         node (yaml.MappingNode): A node.
-        key (Any): The desired key object.
+        key (str): The desired key.
         value_node (yaml.Node): A value node to insert for the given \
                 key.
     """
     matches = [i
             for i, kv_pair in enumerate(node.value)
             if kv_pair[0].value == key]
-    node.value[matches[0]] = (node.value[matches[0]][0], value_node)
+    if len(matches) == 0:
+        key_node = yaml.ScalarNode('tag:yaml.org,2002:str', key)
+        node.value.append((key_node, value_node))
+    else:
+        node.value[matches[0]] = (node.value[matches[0]][0], value_node)
 
-def update_key(node, key, recognizer):
-    set_by_key(node, key, recognizer(get_by_key(node, key)))
+def update_key(node, key, recognizer, *args, **kwargs):
+    set_by_key(node, key, recognizer(get_by_key(node, key), *args, **kwargs))
 
 def set_key_default(node, key, default_value):
     if has_key(node, key):
@@ -63,6 +67,33 @@ def set_key_default(node, key, default_value):
         # TODO BUG should be a list of (yaml.Node, yaml.Node) made from dict
         # Do we have anything other than empty lists and scalars for default values?
         value_node = yaml.MappingNode('tag:yaml.org,2002:map', default_value)
+
+def rename_key(node, key, new_name):
+    """
+    Renames a key in the given mapping.
+
+    If the new name already exists in the given mapping, raises an
+    error.
+
+    Args:
+        node (yaml.MappingNode): A node containing the given key
+        key (str): The key to rename
+        new_name (str): The new name for the key
+
+    Raises:
+        RuntimeError: The mapping already has a key with the new name.
+    """
+    require_keys(node, [key])
+
+    if has_key(node, new_name):
+        raise RuntimeError("{}{}Invalid input: invalid key {}".format(
+            node.start_mark, os.linesep, new_name))
+
+    matches = [i
+            for i, kv_pair in enumerate(node.value)
+            if kv_pair[0].value == key]
+    new_key = yaml.ScalarNode('tag:yaml.org,2002:str', new_name)
+    node.value[matches[0]] = (new_key, node.value[matches[0]][1])
 
 def require_keys(node, keys):
     """Checks that the node is a mapping and has the given keys."""
@@ -133,7 +164,7 @@ def update_each_item(node, recognizer, *args, **kwargs):
             node.start_mark, os.linesep))
 
     for subnode in node.value:
-        new_subnodes.append(recognizer(subnode, *arg, **kwargs))
+        new_subnodes.append(recognizer(subnode, *args, **kwargs))
 
     node.value = new_subnodes
 
