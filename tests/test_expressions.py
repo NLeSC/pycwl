@@ -4,6 +4,7 @@ import yaml
 from .recognizer_test_loader import run_recognizer
 
 from pycwl.parser.v2_0.recognizers.common import has_key
+from pycwl.parser.v2_0.recognizers.common import get_by_index
 from pycwl.parser.v2_0.recognizers.common import get_by_key
 from pycwl.parser.v2_0.recognizers.expressions import *
 

@@ -60,13 +60,16 @@ def set_key_default(node, key, default_value):
 
     if isinstance(default_value, str):
         value_node = yaml.ScalarNode('tag:yaml.org,2002:str', default_value)
-        set_by_key(node, key, value_node)
     elif isinstance(default_value, list):
         value_node = yaml.SequenceNode('tag:yaml.org,2002:seq', default_value)
     elif isinstance(default_value, dict):
         # TODO BUG should be a list of (yaml.Node, yaml.Node) made from dict
         # Do we have anything other than empty lists and scalars for default values?
         value_node = yaml.MappingNode('tag:yaml.org,2002:map', default_value)
+    elif isinstance(default_value, bool):
+        value_node = yaml.ScalarNode('tag:yaml.org,2002:bool', default_value)
+
+    set_by_key(node, key, value_node)
 
 def rename_key(node, key, new_name):
     """
@@ -114,6 +117,38 @@ def require_type(node, tag):
     if node.tag != tag:
         raise RuntimeError('{}{}Invalid input: expected a scalar value of type {}, found one of type {}'.format(
             node.start_mark, os.linesep, node.tag, tag))
+
+def interpret_as_bool(node):
+    """Converts a ScalarNode containing a boolean value to have
+    a bool type value. Does nothing if the node is not a boolean
+    scalar node.
+
+    Args:
+        node (yaml.ScalarNode): The node to change
+    """
+    if isinstance(node, yaml.ScalarNode):
+        if node.tag == 'tag:yaml.org,2002:bool':
+            if node.value == 'false':
+                node.tag = 'tag:yaml.org,2002:bool'
+                node.value = False
+            if node.value == 'true':
+                node.tag = 'tag:yaml.org,2002:bool'
+                node.value = True
+
+def get_by_index(node, index):
+    """Returns the node at the given index in a sequence.
+
+    Args:
+        node (yaml.SequenceNode): The sequence to index
+        index (int): The item to retrieve
+
+    Returns:
+        (yaml.Node): The node at that item
+    """
+    if not isinstance(node, yaml.SequenceNode):
+        raise RuntimeError('{}{}Invalid input: expected a sequence'.format(
+            node.start_mark, os.linesep))
+    return node.value[index]
 
 def mapping_to_sequence(node, key):
     """
