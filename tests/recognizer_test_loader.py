@@ -25,20 +25,24 @@ class RecognizerTestLoader(yaml.Loader):
     """
     def get_single_node(self):
         node = super().get_single_node()
-        node = self.__class__.test_recognizer(node)
+        args = self.__class__.test_args
+        kwargs = self.__class__.test_kwargs
+        node = self.__class__.test_recognizer(node, *args, **kwargs)
         self.__class__.result = node
         return node
 
     def get_node(self):
         node = super().get_node()
-        node = self.__class__.test_recognizer(node)
+        args = self.__class__.test_args
+        kwargs = self.__class__.test_kwargs
+        node = self.__class__.test_recognizer(node, *args, **kwargs)
         self.__class__.result = node
         return node
 
     def construct_object(self, node, deep=False):
         pass
 
-def run_recognizer(test_recognizer, test_data):
+def run_recognizer(test_recognizer, test_data, *args, **kwargs):
     """
     Run the given recognizer on the given YAML string, and return
     the result.
@@ -52,5 +56,7 @@ def run_recognizer(test_recognizer, test_data):
     """
     AdaptedTestLoader = copy.deepcopy(RecognizerTestLoader)
     AdaptedTestLoader.test_recognizer = test_recognizer
+    AdaptedTestLoader.test_args = args
+    AdaptedTestLoader.test_kwargs = kwargs
     yaml.load(test_data, Loader=AdaptedTestLoader)
     return AdaptedTestLoader.result

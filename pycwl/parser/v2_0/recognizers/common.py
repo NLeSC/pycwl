@@ -68,6 +68,8 @@ def set_key_default(node, key, default_value):
         value_node = yaml.MappingNode('tag:yaml.org,2002:map', default_value)
     elif isinstance(default_value, bool):
         value_node = yaml.ScalarNode('tag:yaml.org,2002:bool', default_value)
+    elif default_value is None:
+        value_node = None   # TODO: is that right? See when we construct things
 
     set_by_key(node, key, value_node)
 
@@ -180,6 +182,42 @@ def mapping_to_sequence(node, key):
         set_by_key(v, key, k)
         object_list.append(v)
     return yaml.SequenceNode(u'tag:yaml.org,2002:seq', object_list)
+
+def pairs_to_sequence(node, key_key, value_key, merge_value):
+    """
+    Converts a mapping to a list of mappings with keys and values as
+    members.
+
+    The arguments specify the names of the keys in the newly created
+    mappings under which the key and value are stored.
+
+    Returns the original node unchanged if it is already a mapping.
+
+    Args:
+        node (yaml.Node): A mapping node.
+        key_key (str): A key to store the original key under.
+        value_key (str): A key to store the original value under.
+
+    Returns:
+        (yaml.SequenceNode): A sequence containing mappings containing \
+                the original pairs.
+    """
+    if not isinstance(node, yaml.MappingNode):
+        return node
+
+    key_tag = yaml.ScalarNode('tag:yaml.org,2002:str', key_key)
+    value_tag = yaml.ScalarNode('tag:yaml.org,2002:str', value_key)
+
+    object_list = []
+    for k, v in node.value:
+        if isinstance(v, yaml.MappingNode) and merge_value:
+            new_node = v
+            new_node.value.append((key_tag, k))
+        else:
+            new_node = yaml.MappingNode('tag:yaml.org,2002:map', [
+                    (key_tag, k), (value_tag, v)])
+        object_list.append(new_node)
+    return yaml.SequenceNode('tag:yaml.org,2002:seq', object_list)
 
 def update_each_item(node, recognizer, *args, **kwargs):
     """
