@@ -3,10 +3,10 @@ import yaml
 
 from .recognizer_test_loader import run_recognizer
 
-from pycwl.parser.v2_0.recognizers.common import has_key
-from pycwl.parser.v2_0.recognizers.common import get_by_index
-from pycwl.parser.v2_0.recognizers.common import get_by_key
-from pycwl.parser.v2_0.recognizers.processes import *
+from pycwl.parser.experimental.recognizers.common import has_key
+from pycwl.parser.experimental.recognizers.common import get_by_index
+from pycwl.parser.experimental.recognizers.common import get_by_key
+from pycwl.parser.experimental.recognizers.processes import *
 
 def test_recognize_parameter():
     test_data = '''

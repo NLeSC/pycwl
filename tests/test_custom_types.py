@@ -1,7 +1,7 @@
 from .recognizer_test_loader import run_recognizer
 
-from pycwl.parser.v2_0.recognizers.common import has_key, get_by_key
-from pycwl.parser.v2_0.recognizers.custom_types import *
+from pycwl.parser.experimental.recognizers.common import has_key, get_by_key
+from pycwl.parser.experimental.recognizers.custom_types import *
 
 import pytest
 
