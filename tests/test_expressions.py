@@ -44,6 +44,31 @@ def test_recognize_constant_expression_2():
     with pytest.raises(RuntimeError):
         run_recognizer(recognize_constant_expression, test_data)
 
+def test_recognize_merge_expression():
+    test_data = '''
+        mergeMethod: merge_flattened
+        sources: [step1/output1, step2/output2]
+    '''
+    result = run_recognizer(recognize_expression, test_data)
+    assert result.tag == '!MergeExpression'
+
+    assert has_key(result, 'mergeMethod')
+    assert get_by_key(result, 'mergeMethod').value == 'merge_flattened'
+
+    assert has_key(result, 'sources')
+    sources = get_by_key(result, 'sources')
+    assert sources.tag == 'tag:yaml.org,2002:seq'
+    assert sources.value[0].value == 'step1/output1'
+    assert sources.value[1].value == 'step2/output2'
+
+def test_recognize_merge_expression_2():
+    test_data = '''
+        mergeMethod: merge_something
+        sources: [step1/output1, step2/output2]
+    '''
+    with pytest.raises(RuntimeError):
+        run_recognizer(recognize_merge_expression, test_data)
+
 def test_recognize_file_description():
     test_data = 'file_location: file:///home/user/myfile.txt'
     result = run_recognizer(recognize_file_description, test_data)

@@ -192,26 +192,4 @@ def test_recognize_process_description():
     assert out2[1].tag == '!ReferenceExpression'
     assert len(get_by_key(out2[1], 'selectors').value) == 2
 
-'''
-
-
-def test_recognize_reference_expression():
-    test_data = '$(inputs.input_1)'
-    result = run_recognizer(recognize_reference_expression, test_data)
-
-    assert isinstance(result, yaml.MappingNode)
-    assert result.tag == '!ReferenceExpression'
-
-    assert has_key(result, 'selectors')
-    selectors = get_by_key(result, 'selectors').value
-
-    assert len(selectors) == 2
-    assert selectors[0] == 'inputs'
-    assert selectors[1] == 'input_1'
-
-def test_recognize_reference_expression_2():
-    test_data = 'arbitrary string'
-    with pytest.raises(RuntimeError):
-        run_recognizer(recognize_reference_expression, test_data)
-'''
 

@@ -2,7 +2,6 @@ from .common import *
 
 from .custom_types import recognize_type
 from .expressions import recognize_expression
-from .workflows import recognize_expression_tool
 
 def recognize_parameter(node, imbue):
     """
@@ -101,5 +100,11 @@ def recognize_process_description(node):
 
 def recognize_process_extensions(node):
     # not implemented yet
+    return node
+
+def recognize_expression_tool(node):
+    # Any process that is not something else is an ExpressionTool
+    if isinstance(node, yaml.MappingNode):
+            node.tag = u'!ExpressionTool'
     return node
 

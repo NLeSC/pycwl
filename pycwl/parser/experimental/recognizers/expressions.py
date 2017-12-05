@@ -11,6 +11,7 @@ def recognize_expression(node):
     node = optionally(recognize_directory_description, node)
     node = optionally(recognize_file_constructor, node)
     node = optionally(recognize_directory_constructor, node)
+    node = optionally(recognize_merge_expression, node)
 
     if not was_recognized(node):
         raise RuntimeError('{}{}Invalid expression'.format(
@@ -38,6 +39,21 @@ def recognize_constant_expression(node):
     key = yaml.ScalarNode('tag:yaml.org,2002:str', 'value')
     new_node = yaml.MappingNode('!ConstantExpression', [(key, node)])
     return new_node
+
+def recognize_merge_method(node):
+    require_type(node, 'tag:yaml.org,2002:str')
+    merge_methods = ['merge_flattened', 'merge_nested']
+    if node.value not in merge_methods:
+        raise RuntimeError('{}{}Invalid merge method; must be either ' \
+                '"merge_flattened" or "merge_nested"'.format(
+                    node.start_mark, os.linesep))
+    return node
+
+def recognize_merge_expression(node):
+    require_keys(node, ['mergeMethod', 'sources'])
+    update_key(node, 'mergeMethod', recognize_merge_method)
+    node.tag = u'!MergeExpression'
+    return node
 
 def recognize_file_description(node):
     require_keys(node, ['file_location'])

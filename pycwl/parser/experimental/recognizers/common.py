@@ -112,6 +112,9 @@ def require_keys(node, keys):
                 node.start_mark, os.linesep, key, keys))
 
 def require_type(node, tag):
+    """Checks that the given node is a ScalarNode with the given tag.
+    Returns (yaml.Node): The original node
+    """
     if not isinstance(node, yaml.ScalarNode):
         raise RuntimeError('{}{}Invalid input: expected a scalar value of type {}'.format(
             node.start_mark, os.linesep, tag))
@@ -119,6 +122,7 @@ def require_type(node, tag):
     if node.tag != tag:
         raise RuntimeError('{}{}Invalid input: expected a scalar value of type {}, found one of type {}'.format(
             node.start_mark, os.linesep, node.tag, tag))
+    return node
 
 def interpret_as_bool(node):
     """Converts a ScalarNode containing a boolean value to have
